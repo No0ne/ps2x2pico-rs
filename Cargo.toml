@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
-name = "rp2040-project-template"
-version = "0.1.0"
+name = "ps2pico"
+version = "0.0.1"
 
 [dependencies]
 cortex-m = "0.7"
