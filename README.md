@@ -1,6 +1,8 @@
 # ps2x2pico
 USB keyboard/mouse to PS/2 interface converter using a Raspberry Pi Pico
 
+![Hardware](https://raw.githubusercontent.com/No0ne/ps2x2pico/main/hw1.jpg)
+
 WIP - until I know enought about Rust use this instead: https://github.com/No0ne/ps2pico
 
 # Usage
