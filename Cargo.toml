@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name = "ps2pico"
+name = "ps2x2pico"
 version = "0.0.1"
 
 [dependencies]
@@ -13,15 +13,8 @@ defmt = "0.3"
 defmt-rtt = "0.3"
 panic-probe = { version = "0.3", features = ["print-defmt"] }
 
-# We're using a Pico by default on this template
 rp-pico = "0.4"
-
-# but you can use any BSP. Uncomment this to use the pro_micro_rp2040 BSP instead
-# sparkfun-pro-micro-rp2040 = "0.3"
-
-# If you're not going to use a Board Support Package you'll need these:
-# rp2040-hal = { version="0.5", features=["rt"] }
-# rp2040-boot2 = "0.2"
+pio = "0.2.0"
 
 # cargo build/run
 [profile.dev]
