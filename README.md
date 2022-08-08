@@ -23,7 +23,11 @@ Pico GPIO15 ______| LV4         HV4 |______ PS/2 mouse data
 
 # Build
 ```
+rustup target install thumbv6m-none-eabi
+cargo install flip-link
+cargo install elf2uf2-rs --locked
 cargo build --release
+elf2uf2-rs target/thumbv6m-none-eabi/release/ps2x2pico ps2x2pico.uf2
 ```
 
 # Resources
