@@ -56,10 +56,12 @@ fn main() -> ! {
   
   let _: Pin<_, FunctionPio0> = pins.gpio11.into_mode();
   let _: Pin<_, FunctionPio0> = pins.gpio12.into_mode();
+  let _: Pin<_, FunctionPio0> = pins.gpio14.into_mode();
+  let _: Pin<_, FunctionPio0> = pins.gpio15.into_mode();
   
   pins.gpio13.into_push_pull_output().set_high().unwrap();
   
-  //let mut led_pin = pins.led.into_push_pull_output();
+  let mut led_pin = pins.led.into_push_pull_output();
   
   let mut a = pio::Assembler::<{ pio::RP2040_MAX_PROGRAM_SIZE }>::new();
   let mut wrap_target = a.label();
@@ -72,10 +74,10 @@ fn main() -> ! {
   a.bind(&mut wrap);
   
   let program = a.assemble_with_wrap(wrap, wrap_target);
-  let (mut pio, smout, _, _, _) = pac.PIO0.split(&mut pac.RESETS);
+  let (mut pio, smkbd, smms, _, _) = pac.PIO0.split(&mut pac.RESETS);
   let installed = pio.install(&program).unwrap();
   
-  let (mut sm, _, mut tx) = rp_pico::hal::pio::PIOBuilder::from_program(installed)
+  let (mut sm1, _, mut txkbd) = rp_pico::hal::pio::PIOBuilder::from_program(installed)
      .buffers(rp_pico::hal::pio::Buffers::OnlyTx)
      .set_pins(11, 1)
      .out_pins(12, 1)
@@ -83,34 +85,65 @@ fn main() -> ! {
      .out_shift_direction(rp_pico::hal::pio::ShiftDirection::Right)
      .pull_threshold(11)
      .clock_divisor(2560f32)
-     .build(smout);
-  sm.set_pindirs([(11, rp_pico::hal::pio::PinDir::Output), (12, rp_pico::hal::pio::PinDir::Output)]);
-  sm.start();
+     .build(smkbd);
+  sm1.set_pindirs([(11, rp_pico::hal::pio::PinDir::Output), (12, rp_pico::hal::pio::PinDir::Output)]);
+  sm1.start();
+  
+  let installed = pio.install(&program).unwrap();
+  
+  let (mut sm2, _, mut txms) = rp_pico::hal::pio::PIOBuilder::from_program(installed)
+     .buffers(rp_pico::hal::pio::Buffers::OnlyTx)
+     .set_pins(14, 1)
+     .out_pins(15, 1)
+     .autopull(true)
+     .out_shift_direction(rp_pico::hal::pio::ShiftDirection::Right)
+     .pull_threshold(11)
+     .clock_divisor(2560f32)
+     .build(smms);
+  sm2.set_pindirs([(14, rp_pico::hal::pio::PinDir::Output), (15, rp_pico::hal::pio::PinDir::Output)]);
+  sm2.start();
   
   loop {
-    tx.write(frame(0x12)); delay.delay_ms(2);
-    tx.write(frame(0x2c)); delay.delay_ms(2);
-    tx.write(frame(0xf0)); delay.delay_ms(2);
-    tx.write(frame(0x2c)); delay.delay_ms(2);
-    tx.write(frame(0xf0)); delay.delay_ms(2);
-    tx.write(frame(0x12)); delay.delay_ms(2);
+    led_pin.set_high().unwrap();
+    txkbd.write(frame(0x12)); delay.delay_ms(2);
+    txkbd.write(frame(0x2c)); delay.delay_ms(2);
+    txkbd.write(frame(0xf0)); delay.delay_ms(2);
+    txkbd.write(frame(0x2c)); delay.delay_ms(2);
+    txkbd.write(frame(0xf0)); delay.delay_ms(2);
+    txkbd.write(frame(0x12)); delay.delay_ms(2);
     
-    tx.write(frame(0x24)); delay.delay_ms(2);
-    tx.write(frame(0xf0)); delay.delay_ms(2);
-    tx.write(frame(0x24)); delay.delay_ms(2);
+    txkbd.write(frame(0x24)); delay.delay_ms(2);
+    txkbd.write(frame(0xf0)); delay.delay_ms(2);
+    txkbd.write(frame(0x24)); delay.delay_ms(2);
     
-    tx.write(frame(0x1b)); delay.delay_ms(2);
-    tx.write(frame(0xf0)); delay.delay_ms(2);
-    tx.write(frame(0x1b)); delay.delay_ms(2);
+    txkbd.write(frame(0x1b)); delay.delay_ms(2);
+    txkbd.write(frame(0xf0)); delay.delay_ms(2);
+    txkbd.write(frame(0x1b)); delay.delay_ms(2);
     
-    tx.write(frame(0x2c)); delay.delay_ms(2);
-    tx.write(frame(0xf0)); delay.delay_ms(2);
-    tx.write(frame(0x2c)); delay.delay_ms(2);
+    txkbd.write(frame(0x2c)); delay.delay_ms(2);
+    txkbd.write(frame(0xf0)); delay.delay_ms(2);
+    txkbd.write(frame(0x2c)); delay.delay_ms(2);
     
-    tx.write(frame(0x5a)); delay.delay_ms(2);
-    tx.write(frame(0xf0)); delay.delay_ms(2);
-    tx.write(frame(0x5a)); delay.delay_ms(2);
+    txkbd.write(frame(0x5a)); delay.delay_ms(2);
+    txkbd.write(frame(0xf0)); delay.delay_ms(2);
+    txkbd.write(frame(0x5a)); delay.delay_ms(2);
     
+    txms.write(frame(0x09)); delay.delay_ms(2);
+    txms.write(frame(0x00)); delay.delay_ms(2);
+    txms.write(frame(0x00)); delay.delay_ms(2);
+    txms.write(frame(0x00)); delay.delay_ms(2);
+    
+    led_pin.set_low().unwrap();
+    delay.delay_ms(1000);
+    
+    led_pin.set_high().unwrap();
+    
+    txms.write(frame(0x08)); delay.delay_ms(2);
+    txms.write(frame(0x00)); delay.delay_ms(2);
+    txms.write(frame(0x00)); delay.delay_ms(2);
+    txms.write(frame(0x00)); delay.delay_ms(2);
+    
+    led_pin.set_low().unwrap();
     delay.delay_ms(1000);
   }
 }
